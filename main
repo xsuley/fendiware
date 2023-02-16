@@ -1,8 +1,35 @@
+getgenv().FendiWare = {
+    Silent = {
+        Enabled = true,
+        Part = "HumanoidRootPart", 
+        ClosestPart = true,
+        PredictMovement = true,
+        PredictionVelocity = 0.11111,
+    },
+    SilentFOV = {
+        Visible = true,
+        Filled = false,
+        Transparency = 1,
+        Color = Color3.fromRGB(0, 0, 0),
+        Radius = 115,
+    },
+    Checks = {
+        WallCheck = true,
+        VisibleCheck = true,
+        CrewCheck = true,
+        AntiGroundShots = true,
+        KoCheck = true,
+    },
+    Resolver = {
+        Desync = true,
+        UndergroundAA = true,
+    },
+}
+
 if not game:IsLoaded() then
 	game.Loaded:Wait()
 end
 
--- // Variables (Too Lazy To Make It To One Local)
 local FendiWare 	           = getgenv().FendiWare
 local OldSilentAimPart     = FendiWare.Silent.Part
 local SilentTarget         = nil
@@ -25,12 +52,10 @@ local Players, Client, Mouse, RS, Camera, GuiS, Uis, Ran =
     game:GetService("UserInputService"),
     math.random
 
--- // Drawing For SilentAim
 Script.Drawing.SilentCircle = Drawing.new("Circle")
 Script.Drawing.SilentCircle.Color = Color3.new(1,1,1)
 Script.Drawing.SilentCircle.Thickness = 1
 
--- // Checks If The Player Is Alive
 Script.Functions.Alive = (function(plr)
     if plr and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") ~= nil and plr.Character:FindFirstChild("Humanoid") ~= nil and plr.Character:FindFirstChild("Head") ~= nil then
         return true
@@ -38,13 +63,11 @@ Script.Functions.Alive = (function(plr)
     return false
 end)
 
--- // Checks If Player Is On Your Screen
 Script.Functions.OnScreen = (function(Object)
     local _, screen = Camera:WorldToScreenPoint(Object.Position)
     return screen
 end)
 
--- // Gets Magnitude From Part Position And Mouse
 Script.Functions.GetMagnitudeFromMouse = (function(Part)
     local PartPos, OnScreen = Camera:WorldToScreenPoint(Part.Position)
     if OnScreen then
@@ -54,7 +77,6 @@ Script.Functions.GetMagnitudeFromMouse = (function(Part)
     return math.huge
 end)
 
--- // Checks If The Player Is Behind A Wall Or Something Else
 Script.Functions.VisibleCheck = (function(Part, PartDescendant)
     local Character = Client.Character or Client.CharacterAdded.Wait(Client.CharacterAdded)
     local Origin = Camera.CFrame.Position
@@ -77,7 +99,6 @@ Script.Functions.VisibleCheck = (function(Part, PartDescendant)
     return false
 end)
 
--- // Gets The Part From An Object
 Script.Functions.GetParts = (function(Object)
     if string.find(Object.Name, "Gun") then
         return
@@ -87,7 +108,6 @@ Script.Functions.GetParts = (function(Object)
     end
 end)
 
--- // Check If Crew Folder Is A Thing
 Script.Functions.FindCrew = (function(Player)
 	if Player:FindFirstChild("DataFolder") and Player.DataFolder:FindFirstChild("Information") and Player.DataFolder.Information:FindFirstChild("Crew") and Client:FindFirstChild("DataFolder") and Client.DataFolder:FindFirstChild("Information") and Client.DataFolder.Information:FindFirstChild("Crew") then
         if Client.DataFolder.Information:FindFirstChild("Crew").Value ~= nil and Player.DataFolder.Information:FindFirstChild("Crew").Value ~= nil and Player.DataFolder.Information:FindFirstChild("Crew").Value ~= "" and Client.DataFolder.Information:FindFirstChild("Crew").Value ~= "" then 
@@ -97,7 +117,6 @@ Script.Functions.FindCrew = (function(Player)
 	return false
 end)
 
--- // Gets The Closest Part From Cursor
 Script.Functions.GetClosestBodyPart = (function(Char)
     local Distance = math.huge
     local ClosestPart = nil
@@ -123,8 +142,6 @@ Script.Functions.GetClosestBodyPart = (function(Char)
     return ClosestPart
 end)
 
-
--- // Gets The Closest Player For Cursor (Silent Aim)
 Script.Functions.GetClosestPlayer = (function()
     local Target = nil
     local Closest = math.huge
@@ -165,7 +182,6 @@ Script.Functions.GetClosestPlayer = (function()
     SilentTarget = Target
 end)
 
--- // Server Side Mouse Position Changer
 local OldIndex = nil 
 OldIndex = hookmetamethod(game, "__index", (function(self, Index)
     if not checkcaller() and Mouse and self == Mouse and Index == "Hit" and FendiWare.Silent.Enabled and AntiAimViewer then
@@ -230,7 +246,6 @@ OldIndex = hookmetamethod(game, "__index", (function(self, Index)
     return OldIndex(self, Index)
 end))
 
--- // Silent Aim Misc
 Script.Functions.SilentMisc = (function()
 	if FendiWare.Silent.Enabled then
        if Script.Functions.Alive(SilentTarget) then
@@ -245,7 +260,6 @@ Script.Functions.SilentMisc = (function()
 	end
 end)
 
---// Update Size/Position Of Circle
 Script.Functions.UpdateFOV = (function()
     if (not Script.Drawing.SilentCircle) then
         return Script.Drawing.SilentCircle
@@ -258,13 +272,11 @@ Script.Functions.UpdateFOV = (function()
 	Script.Drawing.SilentCircle.Radius = FendiWare.SilentFOV.Radius * 3
 end)
 
--- // Client Fps (EXECUTES PER FRAME)
 RS.Heartbeat:Connect((function()
     Script.Functions.GetClosestPlayer()
     Script.Functions.SilentMisc()
 end))
 
--- // Server Tick (EXECUTES PER TICK)
 RS.RenderStepped:Connect((function()
     Script.Functions.UpdateFOV()
     if FendiWare.Silent.Enabled and Script.Functions.Alive(AimTarget) and FendiWare.Silent.ClosestPart and Script.Functions.Alive(SilentTarget) then
